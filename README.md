@@ -82,17 +82,17 @@ Processes live market events through a multi-stage pipeline.
 - Null `volume_spike_multiplier` → assigned 1.0, logged
 - Conflicting signals (e.g. +15% price with 0.3× volume = pump risk) → flagged, confidence penalised
 
-**Multi-Factor Scoring Engine:**
+**Multi-Factor Scoring Engine (v4.0):**
 
 | Factor | Weight | Rationale |
 |--------|--------|-----------|
-| Volume spike | 0.28 | Volume leads price in crypto — strongest leading indicator |
-| Price momentum | 0.25 | 5-minute price change, normalized |
-| Order book | 0.20 | Spread + bid depth collapse = microstructure signal |
-| On-chain | 0.17 | Whale sell pressure + exchange inflow |
-| Social sentiment | 0.10 | Lagging, noisy — lowest weight |
+| **Volume Spike** | 0.26 | Primary confirmation; validates that price moves are real |
+| **Price Momentum** | 0.28 | Trend indicator; breakout signal |
+| **On-chain** | 0.20 | Whale dynamics (harder to manipulate than social data) |
+| **Social Sentiment**| 0.16 | Secondary context (AFINN/NLP); reduced to lower noise |
+| **Order Book** | 0.10 | Micro-liquidity and bid-ask spread health |
 
-Composite score range: [-1.0, +1.0]. Content bias from Agent 0 is added on top.
+**Built-in Divergence Detection:** The engine now automatically penalizes price surges (`sp > 0.4`) that occur on low volume (`sv < -0.1`), reducing the composite score to avoid "FOMO" bull traps.
 
 **Pump-and-Dump Detection:** if price > +10% AND volume < 0.5× AND spread > 5% → classified as PUMP_RISK regardless of score, trade blocked.
 
@@ -114,6 +114,15 @@ Takes the score and classification from Agent 1 and decides action + size.
 - Attempt 2: 1s delay (2⁰ × 1000ms)
 - Attempt 3: 2s delay (2¹ × 1000ms)
 - All 3 fail → Fallback Secondary Liquidity Bridge (transaction queued, logged to fallback_tx_log.json)
+
+---
+
+## 🚀 Quick Start (Walkthrough)
+
+1. **Input:** Navigate to the **Agent Tab** and paste a headline like: *"BTC crashing after major exchange hack detected."*
+2. **Analysis:** Watch the terminal. **Agent 0** will flag a "CRITICAL" risk and negative bias.
+3. **Correlation:** **Agent 1** fetches the simulated BTC price. If it sees a price drop and volume spike, it validates the news context.
+4. **Action:** **Agent 2** sees the high-risk score and triggers a `LIQUIDATE_TO_USDC` to protect your simulated wallet.
 
 ---
 
@@ -194,6 +203,20 @@ Prices drift every 8 seconds with slight randomness so repeated runs produce dif
 | NLP | AFINN sentiment library + crypto vocabulary extension |
 | Deployment — Frontend | Netlify (static Expo web build) |
 | Deployment — Backend | Render.com (Node.js web service) |
+
+---
+
+## 🛠️ Configuration & Env
+
+The system is designed to run out-of-the-box using the mock server, but you can configure the following:
+- **Backend:** `infra/mock_server.js` (Port 3001)
+- **Frontend Engine:** `agent/orchestrator.js` contains the logic for weights and retry logic.
+- **Polling:** The mobile app polls the market every 3–8 seconds depending on the mode.
+
+## 📈 Future Roadmap
+- [ ] **Real-world Integration:** Replace mock data with live CoinGecko or Binance API streams.
+- [ ] **On-chain Execution:** Integration with `@solana/web3.js` for devnet trade execution.
+- [ ] **Advanced LLM:** Replace AFINN sentiment with a local Tiny-LLM (Llama 3) for deep reasoning.
 
 ---
 

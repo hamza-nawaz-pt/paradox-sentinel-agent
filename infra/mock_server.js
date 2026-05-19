@@ -198,6 +198,7 @@ app.get("/api/chaos-status", (req, res) => {
   res.json({ chaos_mode: chaosMode, activated_at: chaosActivatedAt, total_activations: chaosTriggerCount });
 });
 
+// GET /api/market-stream: Returns live simulated asset prices, including their 5m percentage change and on-chain whale activity metrics.
 app.get("/api/market-stream", (req, res) => {
   res.json({
     status:       "ok",
@@ -214,6 +215,7 @@ app.get("/api/reset-market", (req, res) => {
   res.json({ status: "reset", message: "Market data restored to original scenario" });
 });
 
+// POST /api/execute-action: Validates wallet balance and executes simulated BUY, SELL, HEDGE, or LIQUIDATE orders.
 app.post("/api/execute-action", (req, res) => {
   if (chaosMode) {
     console.log(`\x1b[31m[CHAOS] 500 injected for ${req.body?.asset ?? "?"}\x1b[0m`);
@@ -323,6 +325,7 @@ app.get("/api/tx-log", (req, res) => {
   res.json({ count: txLog.length, transactions: txLog });
 });
 
+// POST /api/parse-content: Parses input text via AFINN NLP or keyword fallback to extract asset mentions and sentiment bias.
 app.post("/api/parse-content", (req, res) => {
   const { text } = req.body;
   if (!text?.trim()) {

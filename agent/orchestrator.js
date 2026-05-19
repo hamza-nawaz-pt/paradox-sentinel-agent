@@ -160,13 +160,42 @@ async function executeWithRetry(asset, action, size) {
   return { success: false, error: lastErr?.message ?? "Unknown error" };
 }
 
+//  AGENT 0 — Content Parser (NLP)
 // ══════════════════════════════════════════════════════════════════
-//  MULTI-FACTOR SCORING ENGINE  v3.0
+
+async function runContentParser(text) {
+  header("AGENT 0 — CONTENT PARSER ACTIVATED");
+  tag("Input Text", `"${text}"`, C.cyan);
+  gap();
+
+  try {
+    const res = await fetch(`${BASE_URL}/api/parse-content`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+    const result = await res.json();
+
+    tag("NLP Analysis", `Sentiment: ${result.sentiment} | Risk: ${result.riskLevel}`, C.magenta);
+    kv("  Extracted Bias", result.bias, result.bias < 0 ? C.red : C.green);
+    kv("  Mentioned",      result.mentionedAssets.join(", "));
+    kv("  Keywords",       result.keywords.join(", "), C.dim);
+    gap();
+
+    return result;
+  } catch (err) {
+    tag("Error", `Agent 0 failed: ${err.message}`, C.red);
+    return { bias: 0, mentionedAssets: ["ALL"] };
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  MULTI-FACTOR SCORING ENGINE  v4.0
 //  Replaces single if-else tree with weighted composite signal score
 // ══════════════════════════════════════════════════════════════════
 
-// Signal weights — tuned for crypto anomaly detection
-const W = { price: 0.30, sentiment: 0.22, volume: 0.20, onchain: 0.18, book: 0.10 };
+// Signal weights — v4.0 "Safe-Growth" (Prioritizes volume/whale confirmation over hype)
+const W = { price: 0.28, volume: 0.26, onchain: 0.20, sentiment: 0.16, book: 0.10 };
 
 // Whale sentiment table
 const WHALE_SCORE = {
@@ -190,7 +219,7 @@ const inflowPct = (ev) => {
   return r > 0.02 ? 0.15 : r > 0.005 ? 0.08 : 0;
 };
 
-function scoreAndDecide(event) {
+function scoreAndDecide(event, bias = 0) {
   const pct   = event.price_change_5m_pct;
   const sent  = event.social_sentiment_score;
   const vol   = event.volume_spike_multiplier;
@@ -202,13 +231,21 @@ function scoreAndDecide(event) {
   const so = Math.max(-1, (WHALE_SCORE[whale] ?? 0) - inflowPct(event));
   const sb = normBook(event.order_book);
 
-  const score = parseFloat(
-    (W.price*sp + W.sentiment*ss + W.volume*sv + W.onchain*so + W.book*sb).toFixed(3)
+  let score = parseFloat(
+    (W.price*sp + W.sentiment*ss + W.volume*sv + W.onchain*so + W.book*sb + bias).toFixed(3)
   );
+
+  // ── Divergence Check: Penalize price action without volume support ─────
+  let divergencePenalty = 0;
+  if (sp > 0.4 && sv < -0.1) {
+    divergencePenalty = 0.15;
+    score = parseFloat((score - divergencePenalty).toFixed(3));
+  }
   const comps = {
     price:    sp.toFixed(2), sentiment: ss.toFixed(2),
     volume:   sv.toFixed(2), onchain:   so.toFixed(2),
     book:     sb.toFixed(2),
+    div_penalty: divergencePenalty.toFixed(2),
   };
   const whaleUnknown = whale === "unknown" ? 0.08 : 0;
 
@@ -293,7 +330,7 @@ function scoreAndDecide(event) {
 //  AGENT 1 — Market Analyst  (with robustness layer)
 // ══════════════════════════════════════════════════════════════════
 
-function runMarketAnalyst(rawEvent) {
+function runMarketAnalyst(rawEvent, contentBias = 0) {
   tag("Agent", "Market Analyst Agent activated", C.magenta);
   gap();
 
@@ -337,7 +374,7 @@ function runMarketAnalyst(rawEvent) {
 
   tag("Reasoning Step", `Multi-factor scoring engine classifying ${sanitized.asset}...`, C.magenta);
 
-  const decision = scoreAndDecide(sanitized);
+  const decision = scoreAndDecide(sanitized, contentBias);
 
   // Apply additional confidence penalty for missing/conflicting data (stacked on engine penalty)
   if (hasConflictingData || hasMissingData) {
@@ -350,7 +387,8 @@ function runMarketAnalyst(rawEvent) {
   if (decision.components) {
     const c = decision.components;
     kv("  Signal breakdown",
-      `price ${c.price} · sent ${c.sentiment} · vol ${c.volume} · onchain ${c.onchain} · book ${c.book}`,
+      `price ${c.price} · sent ${c.sentiment} · vol ${c.volume} · onchain ${c.onchain} · book ${c.book}` +
+      (parseFloat(c.div_penalty) > 0 ? ` · ${C.red}div_penalty -${c.div_penalty}${C.reset}` : ""),
       C.dim);
     kv("  Composite score", String(decision.score),
       Math.abs(decision.score) > 0.5 ? C.red : Math.abs(decision.score) > 0.2 ? C.yellow : C.green);
@@ -508,13 +546,27 @@ async function main() {
   }
   gap();
 
+  // ── Agent 0 — Content Parsing ──────────────────────────────
+  const demoText = process.argv[2] || "BTC surging to new heights as institutional adoption goes parabolic!";
+  const contentResult = await runContentParser(demoText);
+  const bias = contentResult.bias;
+
   // ── Agent pipeline ────────────────────────────────────────────
   const agentResults = [];
 
   for (const rawEvent of events) {
+    // Only analyze assets mentioned by Agent 0, or ALL if unspecified
+    const shouldProcess = contentResult.mentionedAssets.includes("ALL") || 
+                          contentResult.mentionedAssets.includes(rawEvent.asset);
+    
+    if (!shouldProcess) {
+      console.log(`  ${C.dim}[Skip] ${rawEvent.asset} not mentioned in content context.${C.reset}`);
+      continue;
+    }
+
     section(`REASONING TRACE — ${rawEvent.asset}  [${rawEvent.id}]`);
 
-    const { decision, sanitized } = runMarketAnalyst(rawEvent);
+    const { decision, sanitized } = runMarketAnalyst(rawEvent, bias);
     gap();
     const execResult = await runRiskMitigation(sanitized, decision);
     agentResults.push({ event: rawEvent, decision, execResult });
