@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-export const API_BASE = 'http://localhost:3001';
+export const API_BASE = 'https://paradox-sentinel-agent.onrender.com';
 const POLL_MS = 3000;
 
 export interface MarketEvent {
