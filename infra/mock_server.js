@@ -346,11 +346,83 @@ app.post("/api/parse-content", (req, res) => {
 });
 
 app.get("/health", (req, res) => {
-  res.json({
-    status:     "ok",
-    chaos_mode: chaosMode,
-    ts:         new Date().toISOString(),
-  });
+  res.json({ status: "ok", chaos_mode: chaosMode, ts: new Date().toISOString() });
+});
+
+// POST /api/chat — context-aware AI assistant (smart rule-based, no API key required)
+app.post("/api/chat", (req, res) => {
+  const { message } = req.body;
+  if (!message?.trim()) return res.status(400).json({ error: "message required" });
+
+  const msg      = message.toLowerCase();
+  const anomalies = liveEvents.filter(e => e.anomaly || (e.price_change_5m_pct ?? 0) < -12);
+  const btc      = liveEvents.find(e => e.asset === "BTC");
+  const eth      = liveEvents.find(e => e.asset === "ETH");
+  const sol      = liveEvents.find(e => e.asset === "SOL");
+  const pv       = computePortfolioValue();
+  const w        = walletSnapshot();
+
+  function fmtPrice(p) { return p >= 1 ? p.toLocaleString("en-US",{maximumFractionDigits:2}) : p.toFixed(5); }
+
+  let response;
+
+  if (msg.includes("doing") || msg.includes("status") || msg.includes("happening") || msg.includes("monitor")) {
+    response = `System status:\n\n• Monitoring ${liveEvents.length} assets in real-time\n• Portfolio value: $${pv.toLocaleString("en-US",{maximumFractionDigits:2})}\n`;
+    if (anomalies.length) response += `• ⚠ ${anomalies.length} anomaly signal(s): ${anomalies.map(e=>e.asset).join(", ")}\n`;
+    else response += `• No anomalies — all markets stable\n`;
+    if (chaosMode) response += `• ⚡ Chaos Mode ACTIVE — execution layer simulating HTTP 500 failures\n`;
+    if (txLog.length) response += `\nLast action: ${txLog[txLog.length-1]?.summary}`;
+  }
+  else if (msg.includes("scor") || (msg.includes("how") && msg.includes("work")) || msg.includes("weight") || msg.includes("engine")) {
+    response = `Multi-Factor Scoring Engine v4.0:\n\n• Price Momentum   (0.28) — normalized 5-minute price change\n• Volume Spike     (0.26) — log-normalized volume vs baseline\n• On-Chain Data    (0.20) — whale sell pressure + exchange inflows\n• Social Sentiment (0.16) — AFINN NLP with crypto vocabulary\n• Order Book       (0.10) — spread % + bid depth collapse\n\nScore range: [-1.0, +1.0]\n> +0.38     → BUY (Breakout)\n+0.06–+0.38 → BUY (Accumulation)\n-0.20–+0.06 → HOLD\n-0.50–-0.20 → HEDGE\n< -0.50     → LIQUIDATE or STOP_LOSS`;
+  }
+  else if (msg.includes("btc") || msg.includes("bitcoin")) {
+    if (!btc) { response = "BTC market data unavailable — server may be restarting."; }
+    else response = `BTC (Bitcoin) — live data:\n\n• Price: $${fmtPrice(btc.current_price)}\n• 5m Change: ${btc.price_change_5m_pct >= 0 ? "▲ +" : "▼ "}${btc.price_change_5m_pct.toFixed(2)}%\n• Social Sentiment: ${btc.social_sentiment_score ?? "N/A"}/100\n• Volume Spike: ${btc.volume_spike_multiplier}×\n• Anomaly: ${btc.anomaly ? "⚠ YES" : "No"}\n• Your BTC: ${w.BTC ?? 0} BTC ($${((w.BTC ?? 0) * btc.current_price).toFixed(2)})`;
+  }
+  else if (msg.includes("eth") || msg.includes("ethereum")) {
+    if (!eth) { response = "ETH data unavailable."; }
+    else response = `ETH (Ethereum) — live data:\n\n• Price: $${fmtPrice(eth.current_price)}\n• 5m Change: ${eth.price_change_5m_pct >= 0 ? "▲ +" : "▼ "}${eth.price_change_5m_pct.toFixed(2)}%\n• Sentiment: ${eth.social_sentiment_score ?? "N/A"}/100\n• Volume: ${eth.volume_spike_multiplier}×\n• Your ETH: ${w.ETH ?? 0} ETH ($${((w.ETH ?? 0) * eth.current_price).toFixed(2)})`;
+  }
+  else if (msg.includes("sol") || msg.includes("solana")) {
+    if (!sol) { response = "SOL data unavailable."; }
+    else response = `SOL (Solana) — live data:\n\n• Price: $${fmtPrice(sol.current_price)}\n• 5m Change: ${sol.price_change_5m_pct >= 0 ? "▲ +" : "▼ "}${sol.price_change_5m_pct.toFixed(2)}%\n• Anomaly: ${sol.anomaly ? "⚠ YES — This triggers LIQUIDATE_TO_USDC for emergency capital protection" : "No"}\n• Sentiment: ${sol.social_sentiment_score ?? "N/A"}/100\n• Volume: ${sol.volume_spike_multiplier}×`;
+  }
+  else if (msg.includes("portfolio") || msg.includes("wallet") || msg.includes("balance") || msg.includes("holding")) {
+    response = `Portfolio breakdown:\n\n• USDC (cash): $${(w.USDC ?? 0).toFixed(2)}\n`;
+    for (const [asset, bal] of Object.entries(w)) {
+      if (asset === "USDC" || !bal) continue;
+      const ev = liveEvents.find(e => e.asset === asset);
+      const price = ev?.current_price ?? 0;
+      response += `• ${asset}: ${bal} units @ $${fmtPrice(price)} = $${(bal * price).toFixed(2)}\n`;
+    }
+    response += `\nTotal portfolio value: $${pv.toLocaleString("en-US",{maximumFractionDigits:2})}`;
+  }
+  else if (msg.includes("chaos")) {
+    response = chaosMode
+      ? `⚡ Chaos Mode is ACTIVE.\n\nAll /api/execute-action calls return HTTP 500 (Rate Limit / Liquidity Pool Timeout).\n\nAgent 2 will:\n1. Attempt execution (fails)\n2. Retry after 1s (fails)\n3. Retry after 2s (fails)\n4. Route to Fallback Secondary Liquidity Bridge\n5. Queue TX as FBK-XXXXXXX for later retry\n\nThis simulates real-world execution failures under market stress.`
+      : `Chaos Mode is currently OFF.\n\nEnable it from the sidebar or Agent tab to inject HTTP 500 errors and observe Agent 2's exponential backoff + fallback bridge recovery.`;
+  }
+  else if (msg.includes("risk") || msg.includes("danger") || msg.includes("safe") || msg.includes("threat")) {
+    const lvl = anomalies.length >= 2 ? "🔴 HIGH" : anomalies.length === 1 ? "🟡 ELEVATED" : "🟢 LOW";
+    response = `Risk level: ${lvl}\n\n`;
+    if (!anomalies.length) response += "All assets within normal signal ranges. No active threat indicators.";
+    else response += anomalies.map(e => `• ${e.asset}: ${(e.price_change_5m_pct??0).toFixed(2)}% ${e.anomaly?"— CONFIRMED ANOMALY":""}`).join("\n") + "\n\nAgent 2 will trigger LIQUIDATE_TO_USDC on confirmed anomalies.";
+  }
+  else if (msg.includes("trade") || msg.includes("transaction") || msg.includes("history") || msg.includes("last")) {
+    if (!txLog.length) { response = "No trades executed yet. Run the Agent pipeline from the Agent Core tab."; }
+    else response = `Last ${Math.min(5, txLog.length)} transactions:\n\n` +
+      txLog.slice(-5).reverse().map(t => `• ${t.tx_id}: ${t.summary}\n  at ${new Date(t.timestamp).toLocaleTimeString()}`).join("\n\n");
+  }
+  else if (msg.includes("sentinel") || msg.includes("agent") || msg.includes("what is") || msg.includes("explain")) {
+    response = `Paradox Sentinel is a 3-agent autonomous crypto intelligence system:\n\nAGENT 0 — Content Parser\nIngests unstructured text (articles, tweets) → extracts asset mentions, sentiment (BULLISH/BEARISH/NEUTRAL), and risk level via AFINN NLP with 60+ crypto-specific terms.\n\nAGENT 1 — Market Analyst\nFetches live market stream → null-field sanitization → 5-factor scoring engine (price + volume + on-chain + sentiment + order book). Detects pump-and-dump patterns.\n\nAGENT 2 — Risk Mitigation\nEvaluates scores → dynamic position sizing → executes trades with exponential backoff (3×) → Fallback Secondary Liquidity Bridge on total failure.\n\nSentinel Mode: autonomous 5s polling — triggers pipeline automatically on price anomaly > 8%.`;
+  }
+  else {
+    response = `I'm Sentinel AI, monitoring ${liveEvents.length} assets in real-time.\n\n• Portfolio: $${pv.toLocaleString("en-US",{maximumFractionDigits:2})}\n• Anomalies: ${anomalies.length}\n• Chaos Mode: ${chaosMode ? "ACTIVE" : "off"}\n• Trades executed: ${txLog.length}\n\nAsk me about: BTC/ETH/SOL prices, portfolio, risk level, scoring engine, chaos mode, recent trades, or "what is Sentinel?"`;
+  }
+
+  console.log(`[Chat] "${message.slice(0,60)}" → ${response.slice(0,80)}…`);
+  res.json({ response, source: "rule_based", ts: new Date().toISOString() });
 });
 
 app.listen(PORT, () => {
@@ -358,6 +430,7 @@ app.listen(PORT, () => {
   console.log(`  GET  /api/market-stream    — simulated prices (8s drift)`);
   console.log(`  POST /api/execute-action   { asset, action, size }`);
   console.log(`  POST /api/parse-content    { text } — AFINN NLP`);
+  console.log(`  POST /api/chat             { message } — AI assistant`);
   console.log(`  GET  /api/toggle-chaos     — inject HTTP 500s`);
   console.log(`  GET  /api/wallet           — balances + portfolio value`);
   console.log(`  GET  /api/reset-market     — restore original scenario`);

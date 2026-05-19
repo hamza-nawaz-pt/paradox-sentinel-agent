@@ -2,9 +2,9 @@
 
 **Google AI Seekho Hackathon — Challenge 1: Autonomous Content-to-Action Agent**
 
-Paradox Sentinel is a multi-agent crypto intelligence system that ingests unstructured market content, analyzes live simulated market data, and autonomously executes risk-weighted trading decisions — all inside a React Native mobile app with a real-time terminal interface.
+Paradox Sentinel is a multi-agent autonomous crypto intelligence platform. It ingests unstructured market content, analyzes live simulated market data through a 3-agent reasoning pipeline, and autonomously executes risk-weighted trading decisions — displayed in a professional real-time dashboard built with React and Vite.
 
-**Live App:** https://paradox-sentinal-hamza.netlify.app
+**Live App:** https://paradox-sentinal-hamza.netlify.app  
 **Backend API:** https://paradox-sentinel-agent.onrender.com
 
 ---
@@ -13,54 +13,92 @@ Paradox Sentinel is a multi-agent crypto intelligence system that ingests unstru
 
 A user pastes any unstructured text (news article, market report, tweet thread) into the app. Three autonomous agents process it end-to-end:
 
-1. **Agent 0 — Content Parser** reads the text, extracts sentiment, risk signals, and asset mentions using AFINN NLP
-2. **Agent 1 — Market Analyst** fetches the live simulated market stream, sanitizes missing/conflicting data, and runs a multi-factor scoring engine combining price momentum, volume, order book, on-chain signals, and the content bias from Agent 0
-3. **Agent 2 — Risk Mitigation** evaluates the decision, sizes the position dynamically, executes the trade against a simulated wallet with balance validation, and retries failed executions with exponential backoff
+1. **Agent 0 — Content Parser** reads the text, extracts sentiment, risk signals, and asset mentions using AFINN NLP extended with 60+ crypto-specific terms
+2. **Agent 1 — Market Analyst** fetches the live simulated market stream, sanitizes missing/conflicting data, and runs a 5-factor scoring engine combining price momentum, volume, on-chain signals, social sentiment, and order book health
+3. **Agent 2 — Risk Mitigation** evaluates the score, sizes the position dynamically, executes the trade with exponential backoff retry, and routes to a Fallback Secondary Liquidity Bridge on total failure
 
-All of this streams live into a terminal UI showing every reasoning step, score breakdown, decision branch, and wallet delta.
+Every reasoning step, score breakdown, decision branch, and wallet delta streams live into a color-coded terminal. A full analytics dashboard, AI chat assistant, and alert feed run alongside.
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                  MOBILE APP (Expo Web)               │
-│                                                      │
-│  Dashboard Tab          Agent Tab                    │
-│  ─────────────          ──────────                   │
-│  Live market feed       ┌─ AGENT 0: Content Parser ─┐│
-│  Portfolio value        │  AFINN NLP + crypto vocab  ││
-│  Signal cards           │  Sentiment / risk / bias   ││
-│  Anomaly detection      └───────────┬────────────────┘│
-│                                     ▼                 │
-│                         ┌─ AGENT 1: Market Analyst ─┐ │
-│                         │  Fetch market stream       │ │
-│                         │  Robustness sanitizer      │ │
-│                         │  Multi-factor scoring      │ │
-│                         │  Pump-and-dump detection   │ │
-│                         └───────────┬───────────────┘ │
-│                                     ▼                 │
-│                         ┌─ AGENT 2: Risk Mitigation ┐ │
-│                         │  Dynamic position sizing   │ │
-│                         │  Execute trade / hedge     │ │
-│                         │  Exponential backoff (3×)  │ │
-│                         │  Fallback liquidity bridge │ │
-│                         └───────────────────────────┘ │
-└──────────────────────┬──────────────────────────────┘
-                       │ HTTP
-                       ▼
-          ┌─────────────────────────┐
-          │   Backend (Node.js)     │
-          │   Render.com            │
-          │                         │
-          │  /api/market-stream     │
-          │  /api/execute-action    │
-          │  /api/parse-content     │
-          │  /api/wallet            │
-          │  /api/toggle-chaos      │
-          └─────────────────────────┘
+┌────────────────────────────────────────────────────────────┐
+│               WEB DASHBOARD (React + Vite)                 │
+│                                                            │
+│  Dashboard      Agent Core       Analytics                 │
+│  ──────────     ──────────       ───────────               │
+│  Portfolio      ┌─ AGENT 0 ──┐  Live scores per asset     │
+│  Live prices    │ AFINN NLP  │  Portfolio value chart      │
+│  Signal feed    │ Bias calc  │  5-factor radar chart       │
+│  Stat cards     └─────┬──────┘  Decision distribution     │
+│                       ▼         Trade history table        │
+│  Alerts         ┌─ AGENT 1 ──┐                            │
+│  ──────────     │ Fetch mkt  │  AI Chat                   │
+│  Auto-detect    │ Sanitize   │  ──────────                 │
+│  anomaly feed   │ Score(×5)  │  Context-aware assistant   │
+│  Pump-risk      │ P&D detect │  Reads live market state   │
+│  alerts         └─────┬──────┘  No API key required       │
+│                       ▼                                    │
+│                 ┌─ AGENT 2 ──┐                            │
+│                 │ Size pos.  │                            │
+│                 │ Execute    │                            │
+│                 │ Backoff 3× │                            │
+│                 │ Fallback   │                            │
+│                 └────────────┘                            │
+└───────────────────────┬────────────────────────────────────┘
+                        │ HTTP (3s poll)
+                        ▼
+          ┌──────────────────────────────┐
+          │   Backend (Node.js/Express)  │
+          │   Render.com                 │
+          │                              │
+          │  /api/market-stream          │
+          │  /api/execute-action         │
+          │  /api/parse-content (AFINN)  │
+          │  /api/chat (AI assistant)    │
+          │  /api/wallet                 │
+          │  /api/toggle-chaos           │
+          │  /api/tx-log                 │
+          └──────────────────────────────┘
 ```
+
+---
+
+## Dashboard Pages
+
+### Dashboard
+- Portfolio hero card with animated value counter and asset allocation bars
+- 4 live stat cards: anomalies detected, buy signals, avg 5M move, assets tracked
+- Asset cards (BTC/ETH/SOL/FAKE) with real-time sparkline charts and signal badges
+- Signal feed table ranked by threat level with classification and action labels
+
+### Agent Core
+- 3-step pipeline tracker showing active agent in real time
+- Content input area — paste any unstructured text to feed Agent 0
+- Full color-coded terminal streaming every reasoning step
+- Chaos Mode toggle (injects HTTP 500) and Sentinel Mode toggle (autonomous 5s polling)
+
+### Analytics
+- Market health strip: avg score, bullish/bearish count, avg 5M move, anomaly count
+- Live Agent Score bars per asset — computed composite score with action label
+- Portfolio value area chart (builds from live 3s snapshots)
+- 5-factor scoring radar chart + individual factor bars with weights
+- Asset performance horizontal bars (live 5M % change)
+- Decision distribution donut chart with per-action breakdown
+- Full transaction history table
+
+### AI Chat
+- Context-aware assistant that reads live market data, wallet state, and trade log
+- Responds to questions about market conditions, scoring logic, recent decisions, risk levels
+- Suggested prompts for quick exploration
+- Works entirely without an external API key — server reads live state to generate responses
+
+### Alerts
+- Automatically detects anomalies, pump-risk patterns, and critical drops from the market stream
+- Each alert shows asset, type, price change, and message
+- Unread badge count in sidebar navigation
 
 ---
 
@@ -72,7 +110,7 @@ Ingests any unstructured text and produces structured trading signals.
 - **Engine:** AFINN sentiment library extended with 60+ crypto-specific terms (`rugpull: -5`, `etf: +2`, `bullish: +3`, etc.)
 - **Output:** asset mentions (BTC/ETH/SOL), sentiment (BULLISH/BEARISH/NEUTRAL), risk level (NORMAL/ELEVATED/CRITICAL), keyword list, and a `bias` float in [-0.45, +0.45]
 - **How bias is used:** added directly to the composite score in Agent 1, shifting buy/sell thresholds based on content context
-- **Fallback:** if the NLP engine fails, keyword matching takes over client-side
+- **Fallback:** if the NLP endpoint is unreachable, keyword matching runs client-side
 
 ### Agent 1 — Market Analyst
 Processes live market events through a multi-stage pipeline.
@@ -86,13 +124,11 @@ Processes live market events through a multi-stage pipeline.
 
 | Factor | Weight | Rationale |
 |--------|--------|-----------|
-| **Volume Spike** | 0.26 | Primary confirmation; validates that price moves are real |
 | **Price Momentum** | 0.28 | Trend indicator; breakout signal |
-| **On-chain** | 0.20 | Whale dynamics (harder to manipulate than social data) |
-| **Social Sentiment**| 0.16 | Secondary context (AFINN/NLP); reduced to lower noise |
+| **Volume Spike** | 0.26 | Primary confirmation; validates that price moves are real |
+| **On-Chain** | 0.20 | Whale dynamics (harder to manipulate than social data) |
+| **Social Sentiment** | 0.16 | Secondary context (AFINN/NLP); reduced to lower noise |
 | **Order Book** | 0.10 | Micro-liquidity and bid-ask spread health |
-
-**Built-in Divergence Detection:** The engine now automatically penalizes price surges (`sp > 0.4`) that occur on low volume (`sv < -0.1`), reducing the composite score to avoid "FOMO" bull traps.
 
 **Pump-and-Dump Detection:** if price > +10% AND volume < 0.5× AND spread > 5% → classified as PUMP_RISK regardless of score, trade blocked.
 
@@ -113,29 +149,23 @@ Takes the score and classification from Agent 1 and decides action + size.
 - Attempt 1: immediate
 - Attempt 2: 1s delay (2⁰ × 1000ms)
 - Attempt 3: 2s delay (2¹ × 1000ms)
-- All 3 fail → Fallback Secondary Liquidity Bridge (transaction queued, logged to fallback_tx_log.json)
-
----
-
-## 🚀 Quick Start (Walkthrough)
-
-1. **Input:** Navigate to the **Agent Tab** and paste a headline like: *"BTC crashing after major exchange hack detected."*
-2. **Analysis:** Watch the terminal. **Agent 0** will flag a "CRITICAL" risk and negative bias.
-3. **Correlation:** **Agent 1** fetches the simulated BTC price. If it sees a price drop and volume spike, it validates the news context.
-4. **Action:** **Agent 2** sees the high-risk score and triggers a `LIQUIDATE_TO_USDC` to protect your simulated wallet.
+- All 3 fail → Fallback Secondary Liquidity Bridge (transaction queued, logged to `fallback_tx_log.json`)
 
 ---
 
 ## Key Features
 
 ### Chaos Mode
-Toggle from the Agent tab to inject HTTP 500 errors into `/api/execute-action`. Watch Agent 2's retry and fallback recovery logic execute in real time in the terminal.
+Toggle from the sidebar or Agent tab to inject HTTP 500 errors into `/api/execute-action`. Simulates rate limiting and liquidity pool timeouts. Watch Agent 2's retry and fallback recovery logic execute in real time in the terminal.
 
 ### Sentinel Mode
 Autonomous background monitor — polls the market stream every 5 seconds. When price moves > 8% or an anomaly is flagged, automatically triggers a full agent pipeline run without user input. Demonstrates true autonomous operation.
 
-### Real-Time Terminal UI
-Every agent step streams into a colour-coded terminal:
+### AI Chat Assistant
+Ask the built-in assistant anything about what Sentinel is doing. It reads live market prices, wallet balances, trade history, and agent state to give contextual, data-grounded answers. No external API key required.
+
+### Real-Time Terminal
+Every agent step streams into a color-coded terminal:
 - Teal = system / headers
 - Blue = observations
 - White = reasoning
@@ -150,11 +180,12 @@ Every agent step streams into a colour-coded terminal:
 ## Simulated Wallet
 
 Starts with $10,000 USDC + small BTC/ETH/SOL holdings. All trades execute with real logic:
-- BUY: deducts USDC, credits asset
-- SELL: deducts asset, credits USDC
-- LIQUIDATE_TO_USDC: converts entire holding to USDC at current price
-- HEDGE: deducts 2% put option premium from USDC
-- Balance validation: insufficient funds returns HTTP 400 (not silently ignored)
+- **BUY:** deducts USDC, credits asset
+- **SELL:** deducts asset, credits USDC
+- **LIQUIDATE_TO_USDC:** converts entire holding to USDC at current price
+- **HEDGE:** deducts 2% put option premium from USDC
+- **SET_STOP_LOSS:** advisory, no immediate execution
+- Balance validation: insufficient funds returns HTTP 400
 
 Portfolio value updates live as mock prices drift every 8 seconds.
 
@@ -171,7 +202,7 @@ Portfolio value updates live as mock prices drift every 8 seconds.
 | BTC | Normal drifting | HOLD / BUY depending on drift |
 | ETH | Normal drifting | HOLD / BUY depending on drift |
 
-Prices drift every 8 seconds with slight randomness so repeated runs produce different scores.
+Prices drift every 8 seconds with a slight bullish bias so repeated runs produce different scores.
 
 ---
 
@@ -179,16 +210,17 @@ Prices drift every 8 seconds with slight randomness so repeated runs produce dif
 
 **Backend: `https://paradox-sentinel-agent.onrender.com`**
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/market-stream` | Live simulated market events (BTC, ETH, SOL, FAKE) |
-| POST | `/api/execute-action` | Execute trade `{ asset, action, size }` |
-| POST | `/api/parse-content` | NLP parse text `{ text }` → signals |
-| GET | `/api/wallet` | Current balances + portfolio value |
-| GET | `/api/toggle-chaos` | Flip chaos mode on/off |
-| GET | `/api/reset-market` | Restore original market scenario |
-| GET | `/api/tx-log` | Full transaction history |
-| GET | `/health` | Server health check |
+| Method | Endpoint | Body | Description |
+|--------|----------|------|-------------|
+| GET | `/api/market-stream` | — | Live simulated market events with current prices |
+| POST | `/api/execute-action` | `{ asset, action, size }` | Execute BUY / SELL / LIQUIDATE / HEDGE / STOP_LOSS |
+| POST | `/api/parse-content` | `{ text }` | AFINN NLP parse → sentiment, risk, bias |
+| POST | `/api/chat` | `{ message }` | AI assistant — reads live market state |
+| GET | `/api/wallet` | — | Current balances + portfolio value |
+| GET | `/api/tx-log` | — | Full transaction history |
+| GET | `/api/toggle-chaos` | — | Flip chaos mode on/off |
+| GET | `/api/reset-market` | — | Restore original scenario |
+| GET | `/health` | — | Server health check |
 
 ---
 
@@ -196,44 +228,38 @@ Prices drift every 8 seconds with slight randomness so repeated runs produce dif
 
 | Layer | Technology |
 |-------|-----------|
-| Mobile app | React Native + Expo Router (web target) |
-| UI | React Native Web, Animated API, custom terminal renderer |
-| State | React Context + custom `useMarketData` hook (3s polling) |
+| Frontend | React 18 + Vite + TypeScript |
+| Styling | Tailwind CSS v3 |
+| Charts | Recharts (line, area, bar, pie, radar) |
+| Animations | Framer Motion |
+| Icons | Lucide React |
 | Backend | Node.js + Express |
 | NLP | AFINN sentiment library + crypto vocabulary extension |
-| Deployment — Frontend | Netlify (static Expo web build) |
+| Deployment — Frontend | Netlify (static Vite build) |
 | Deployment — Backend | Render.com (Node.js web service) |
 
 ---
 
-## 🛠️ Configuration & Env
-
-The system is designed to run out-of-the-box using the mock server, but you can configure the following:
-- **Backend:** `infra/mock_server.js` (Port 3001)
-- **Frontend Engine:** `agent/orchestrator.js` contains the logic for weights and retry logic.
-- **Polling:** The mobile app polls the market every 3–8 seconds depending on the mode.
-
-## 📈 Future Roadmap
-- [ ] **Real-world Integration:** Replace mock data with live CoinGecko or Binance API streams.
-- [ ] **On-chain Execution:** Integration with `@solana/web3.js` for devnet trade execution.
-- [ ] **Advanced LLM:** Replace AFINN sentiment with a local Tiny-LLM (Llama 3) for deep reasoning.
-
----
-
-## Running Locally
+## Quick Start
 
 ```bash
 # Clone
 git clone https://github.com/hamza-nawaz-pt/paradox-sentinel-agent.git
 cd paradox-sentinel-agent
 
-# Install all dependencies
-npm install
+# Start backend
+cd infra && npm install && npm start
+# → http://localhost:3001
 
-# Start both backend and frontend
-npm run dev
-# Backend → http://localhost:3001
-# Frontend → http://localhost:8081
+# Start frontend (new tab)
+cd frontend && npm install && npm run dev
+# → http://localhost:5173
+```
+
+**Build for deployment:**
+```bash
+cd frontend && npm run build
+# Output: frontend/dist/  — drag to Netlify
 ```
 
 Requires Node.js 18+.
@@ -245,20 +271,40 @@ Requires Node.js 18+.
 ```
 paradox-sentinel-agent/
 ├── infra/
-│   ├── mock_server.js          # Express backend — market stream, wallet, NLP
+│   ├── mock_server.js          # Express backend — market, wallet, NLP, chat
 │   ├── mock_market_data.json   # Hand-crafted demo scenarios
 │   └── package.json
-├── mobile/
-│   ├── app/
-│   │   ├── _layout.tsx         # Root layout + error boundary
-│   │   └── (tabs)/
-│   │       ├── index.tsx       # Dashboard — portfolio, signals, market cards
-│   │       ├── agent.tsx       # 3-agent pipeline terminal
-│   │       └── alerts.tsx      # Alert feed
-│   ├── contexts/
-│   │   └── MarketContext.tsx   # Global market state provider
-│   ├── hooks/
-│   │   └── useMarketData.ts    # Polling hook, wallet state, executeAction
+├── frontend/                   # React + Vite web dashboard
+│   ├── src/
+│   │   ├── App.tsx             # Root layout + tab router
+│   │   ├── types.ts            # Shared TypeScript types
+│   │   ├── api.ts              # API layer
+│   │   ├── lib/
+│   │   │   └── agent.ts        # Scoring engine + sanitizer (client-side)
+│   │   ├── store/
+│   │   │   └── MarketContext.tsx  # Global state + 3s polling
+│   │   ├── components/
+│   │   │   └── layout/
+│   │   │       └── Sidebar.tsx
+│   │   └── pages/
+│   │       ├── Dashboard.tsx   # Portfolio, asset cards, signal feed
+│   │       ├── Agent.tsx       # 3-agent pipeline terminal
+│   │       ├── Analytics.tsx   # Charts, scores, trade history
+│   │       ├── Chat.tsx        # AI assistant
+│   │       └── Alerts.tsx      # Anomaly alert feed
+│   ├── vite.config.ts
+│   ├── tailwind.config.js
 │   └── package.json
-└── package.json                # Root dev script (concurrently)
+├── agent/
+│   ├── antigravity_trace_logs.md       # Normal pipeline run trace
+│   └── antigravity_chaos_trace_logs.md # Chaos mode + fallback trace
+└── package.json
 ```
+
+---
+
+## Future Roadmap
+- [ ] **Real-world Integration:** Replace mock data with live CoinGecko or Binance API streams
+- [ ] **On-chain Execution:** Integration with `@solana/web3.js` for devnet trade execution
+- [ ] **LLM Upgrade:** Replace rule-based chat with Gemini Flash for deeper contextual reasoning
+- [ ] **Multi-user:** Persistent wallet state with user authentication
