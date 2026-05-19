@@ -1,0 +1,20 @@
+{
+  "name": "paradox-sentinel-infra",
+  "version": "1.0.0",
+  "description": "Mock market backend for Paradox Sentinel",
+  "main": "mock_server.js",
+  "scripts": {
+    "start": "node mock_server.js",
+    "dev": "node --watch mock_server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "sentiment": "^5.0.2"
+  },
+  "keywords": [
+    "paradox-sentinel",
+    "mock-backend"
+  ],
+  "license": "MIT"
+}

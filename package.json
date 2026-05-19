@@ -1,0 +1,15 @@
+{
+  "name": "paradox-sentinel",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "predev":      "node scripts/predev.js",
+    "dev":         "concurrently --kill-others-on-fail --names \"BACKEND,APP\" --prefix-colors \"cyan.bold,green.bold\" \"npm --prefix infra start\" \"npm --prefix mobile run web\"",
+    "agent":       "node agent/orchestrator.js",
+    "chaos":       "node -e \"fetch('http://localhost:3001/api/toggle-chaos').then(r=>r.json()).then(d=>console.log(d.message)).catch(()=>console.error('Backend not running — start with: npm run dev'))\"",
+    "install:all": "npm install && npm --prefix infra install && npm --prefix mobile install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

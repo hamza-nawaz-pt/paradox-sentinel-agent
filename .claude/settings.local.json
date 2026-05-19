@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(node mock_server.js)",
+      "Bash(curl -s http://localhost:3001/api/market-stream)",
+      "Bash(node -e \"const d=require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\); const j=JSON.parse\\(d\\); console.log\\('Events:', j.count, '| Assets:', j.events.map\\(e=>e.asset\\).join\\(', '\\)\\)\")",
+      "Bash(curl -s -X POST http://localhost:3001/api/execute-action -H \"Content-Type: application/json\" -d '{\"asset\":\"SOL\",\"action\":\"LIQUIDATE_TO_USDC\",\"size\":1}')",
+      "Bash(node -e \"const d=require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\); const j=JSON.parse\\(d\\); console.log\\('Action:', j.transaction.summary\\); console.log\\('USDC before:', j.state_change.before.USDC, '→ after:', j.state_change.after.USDC\\)\")",
+      "Bash(kill %1)",
+      "PowerShell(Get-Process *)",
+      "Bash(npx tsc *)",
+      "Bash(node_modules/.bin/tsc --noEmit --skipLibCheck)",
+      "Bash(./node_modules/typescript/bin/tsc --noEmit --skipLibCheck --jsx react-native --esModuleInterop --moduleResolution node)",
+      "Bash(./node_modules/typescript/bin/tsc --noEmit --skipLibCheck --jsx react-native --esModuleInterop --moduleResolution bundler --target ES2020 --lib ES2020 --allowSyntheticDefaultImports)",
+      "Bash(./node_modules/typescript/bin/tsc --noEmit --skipLibCheck --project tsconfig.json)",
+      "Bash(node -e \"process.stdin.resume\\(\\); let d=''; process.stdin.on\\('data',c=>d+=c\\); process.stdin.on\\('end',\\(\\)=>{ const j=JSON.parse\\(d\\); console.log\\('Chaos:', j.chaos_mode, '|', j.message\\); }\\)\")",
+      "Bash(node orchestrator.js)",
+      "PowerShell(Get-NetTCPConnection *)",
+      "Bash(node scripts/predev.js)",
+      "Bash(timeout 18 npm run dev)",
+      "Bash(timeout 20 npm run dev)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:3001/health)",
+      "Bash(curl -s http://localhost:8081)",
+      "Bash(Get-ChildItem -Path \"D:\\\\Semester 4\\\\COAL - Theory\\\\paradox\" -Recurse -Force)",
+      "Bash(Select-Object FullName)",
+      "Bash(Sort-Object FullName)",
+      "Bash(findstr /n \"fontSize\\\\|color: T\\\\.\\\\|backgroundColor: T\\\\.\" index.tsx)",
+      "Bash(node -e \"const Sentiment = require\\('sentiment'\\); const s = new Sentiment\\(\\); const r = s.analyze\\('Bitcoin surged after ETF approval, massive institutional inflow', { extras: { etf: 2, inflow: 2, institutional: 2, surge: 3 } }\\); console.log\\('score:', r.score, 'comparative:', r.comparative.toFixed\\(3\\), 'positive:', r.positive, 'negative:', r.negative\\);\")",
+      "Bash(node -e \"const Sentiment = require\\('sentiment'\\); const s = new Sentiment\\(\\); const extras = { rug: -4, hack: -4, exploit: -3, ban: -2, crash: -3, bearish: -3, selloff: -2, breach: -4, stolen: -4, collapse: -4 }; const r = s.analyze\\('Solana hacked, exploit drained funds, price crash incoming, sec banned trading', { extras }\\); console.log\\('score:', r.score, 'comparative:', r.comparative.toFixed\\(3\\), 'neg:', r.negative\\);\")",
+      "Bash(node -e ' *)",
+      "Bash(railway --version)",
+      "Bash(npm --version)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git config *)"
+    ]
+  }
+}

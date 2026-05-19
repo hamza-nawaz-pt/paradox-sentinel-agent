@@ -1,0 +1,90 @@
+[
+  {
+    "fallback_tx_id": "FBK-1779055956460",
+    "timestamp": "2026-05-17T22:12:36.460Z",
+    "asset": "SOL",
+    "action": "LIQUIDATE_TO_USDC",
+    "size": 999,
+    "reason": "HTTP 500 — Rate Limit / Liquidity Pool Timeout [LIQUIDITY_POOL_TIMEOUT]",
+    "status": "QUEUED_FOR_RETRY",
+    "bridge": "secondary_liquidity_bridge_v2",
+    "note": "Primary execution node unavailable. Transaction queued; will auto-retry on node recovery."
+  },
+  {
+    "fallback_tx_id": "FBK-1779055959524",
+    "timestamp": "2026-05-17T22:12:39.524Z",
+    "asset": "ETH",
+    "action": "BUY",
+    "size": 0.1,
+    "reason": "HTTP 500 — Rate Limit / Liquidity Pool Timeout [LIQUIDITY_POOL_TIMEOUT]",
+    "status": "QUEUED_FOR_RETRY",
+    "bridge": "secondary_liquidity_bridge_v2",
+    "note": "Primary execution node unavailable. Transaction queued; will auto-retry on node recovery."
+  },
+  {
+    "fallback_tx_id": "FBK-1779055962566",
+    "timestamp": "2026-05-17T22:12:42.566Z",
+    "asset": "BTC",
+    "action": "BUY",
+    "size": 0.1,
+    "reason": "HTTP 500 — Rate Limit / Liquidity Pool Timeout [LIQUIDITY_POOL_TIMEOUT]",
+    "status": "QUEUED_FOR_RETRY",
+    "bridge": "secondary_liquidity_bridge_v2",
+    "note": "Primary execution node unavailable. Transaction queued; will auto-retry on node recovery."
+  },
+  {
+    "fallback_tx_id": "FBK-1779055965639",
+    "timestamp": "2026-05-17T22:12:45.639Z",
+    "asset": "FAKE",
+    "action": "BUY",
+    "size": 0.1,
+    "reason": "HTTP 500 — Rate Limit / Liquidity Pool Timeout [LIQUIDITY_POOL_TIMEOUT]",
+    "status": "QUEUED_FOR_RETRY",
+    "bridge": "secondary_liquidity_bridge_v2",
+    "note": "Primary execution node unavailable. Transaction queued; will auto-retry on node recovery."
+  },
+  {
+    "fallback_tx_id": "FBK-1779056396725",
+    "timestamp": "2026-05-17T22:19:56.725Z",
+    "asset": "SOL",
+    "action": "LIQUIDATE_TO_USDC",
+    "size": 999,
+    "reason": "HTTP 500 — Rate Limit / Liquidity Pool Timeout [LIQUIDITY_POOL_TIMEOUT]",
+    "status": "QUEUED_FOR_RETRY",
+    "bridge": "secondary_liquidity_bridge_v2",
+    "note": "Primary execution node unavailable. Transaction queued; will auto-retry on node recovery."
+  },
+  {
+    "fallback_tx_id": "FBK-1779056399768",
+    "timestamp": "2026-05-17T22:19:59.768Z",
+    "asset": "ETH",
+    "action": "BUY",
+    "size": 0.1,
+    "reason": "HTTP 500 — Rate Limit / Liquidity Pool Timeout [LIQUIDITY_POOL_TIMEOUT]",
+    "status": "QUEUED_FOR_RETRY",
+    "bridge": "secondary_liquidity_bridge_v2",
+    "note": "Primary execution node unavailable. Transaction queued; will auto-retry on node recovery."
+  },
+  {
+    "fallback_tx_id": "FBK-1779056402796",
+    "timestamp": "2026-05-17T22:20:02.796Z",
+    "asset": "BTC",
+    "action": "BUY",
+    "size": 0.1,
+    "reason": "HTTP 500 — Rate Limit / Liquidity Pool Timeout [LIQUIDITY_POOL_TIMEOUT]",
+    "status": "QUEUED_FOR_RETRY",
+    "bridge": "secondary_liquidity_bridge_v2",
+    "note": "Primary execution node unavailable. Transaction queued; will auto-retry on node recovery."
+  },
+  {
+    "fallback_tx_id": "FBK-1779056405878",
+    "timestamp": "2026-05-17T22:20:05.878Z",
+    "asset": "FAKE",
+    "action": "BUY",
+    "size": 0.1,
+    "reason": "HTTP 500 — Rate Limit / Liquidity Pool Timeout [LIQUIDITY_POOL_TIMEOUT]",
+    "status": "QUEUED_FOR_RETRY",
+    "bridge": "secondary_liquidity_bridge_v2",
+    "note": "Primary execution node unavailable. Transaction queued; will auto-retry on node recovery."
+  }
+]

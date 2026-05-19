@@ -1,0 +1,99 @@
+[
+  {
+    "id": "EVT-001",
+    "asset": "SOL",
+    "timestamp": "2026-05-18T09:14:32Z",
+    "current_price": 138.42,
+    "price_change_5m_pct": -15.3,
+    "volume_24h": 4871200000,
+    "social_sentiment_score": 8,
+    "news_headline": "BREAKING: Solana DeFi protocol Radiant exploited — $47M drained, validators urged to halt",
+    "anomaly": true,
+    "anomaly_type": "exploit_rumor_crash",
+    "volume_spike_multiplier": 6.4,
+    "order_book": {
+      "bid": 137.90,
+      "ask": 138.95,
+      "spread_pct": 0.76,
+      "bid_depth_collapse": true
+    },
+    "on_chain": {
+      "large_transfers_count": 312,
+      "exchange_inflow_usd": 98400000,
+      "whale_sell_pressure": "extreme"
+    }
+  },
+  {
+    "id": "EVT-002",
+    "asset": "ETH",
+    "timestamp": "2026-05-18T09:14:35Z",
+    "current_price": 3741.55,
+    "price_change_5m_pct": 0.12,
+    "volume_24h": 14230000000,
+    "social_sentiment_score": 62,
+    "news_headline": "Ethereum network activity steady; gas fees stable at 8 gwei ahead of mid-week options expiry",
+    "anomaly": false,
+    "anomaly_type": null,
+    "volume_spike_multiplier": 1.02,
+    "order_book": {
+      "bid": 3740.80,
+      "ask": 3742.30,
+      "spread_pct": 0.04,
+      "bid_depth_collapse": false
+    },
+    "on_chain": {
+      "large_transfers_count": 41,
+      "exchange_inflow_usd": 6100000,
+      "whale_sell_pressure": "neutral"
+    }
+  },
+  {
+    "id": "EVT-003",
+    "asset": "BTC",
+    "timestamp": "2026-05-18T09:14:38Z",
+    "current_price": 94870.00,
+    "price_change_5m_pct": 3.87,
+    "volume_24h": 38900000000,
+    "social_sentiment_score": 81,
+    "news_headline": "Bitcoin reclaims $94K resistance with force — spot ETF inflows hit $620M in a single session",
+    "anomaly": false,
+    "anomaly_type": null,
+    "volume_spike_multiplier": 2.3,
+    "order_book": {
+      "bid": 94840.00,
+      "ask": 94900.00,
+      "spread_pct": 0.06,
+      "bid_depth_collapse": false
+    },
+    "on_chain": {
+      "large_transfers_count": 87,
+      "exchange_inflow_usd": 12800000,
+      "whale_sell_pressure": "low"
+    }
+  },
+  {
+    "id": "EVT-004",
+    "asset": "FAKE",
+    "timestamp": "2026-05-18T09:14:41Z",
+    "current_price": 0.0847,
+    "price_change_5m_pct": 22.4,
+    "volume_24h": 184000,
+    "social_sentiment_score": null,
+    "news_headline": "Unverified: Anonymous source claims FAKE token listed on Tier-1 exchange — no official confirmation",
+    "anomaly": true,
+    "anomaly_type": "conflicting_signals",
+    "volume_spike_multiplier": 0.28,
+    "order_book": {
+      "bid": 0.0801,
+      "ask": 0.0912,
+      "spread_pct": 13.86,
+      "bid_depth_collapse": true
+    },
+    "on_chain": {
+      "large_transfers_count": 2,
+      "exchange_inflow_usd": 4200,
+      "whale_sell_pressure": "unknown"
+    },
+    "_robustness_notes": "Edge case: sentiment=null (missing data), price surging +22% but volume dead at 0.28x, spread 13.86% (illiquid). Conflicting signals trigger fallback inference engine."
+  }
+]

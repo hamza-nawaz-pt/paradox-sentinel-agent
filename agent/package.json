@@ -1,0 +1,16 @@
+{
+  "name": "paradox-sentinel-agent",
+  "version": "1.0.0",
+  "description": "Antigravity orchestration layer — agentic reasoning core for Paradox Sentinel",
+  "main": "orchestrator.js",
+  "type": "module",
+  "scripts": {
+    "start": "node orchestrator.js",
+    "dev": "node --watch orchestrator.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["paradox-sentinel", "orchestrator", "agentic", "ai-agent"],
+  "license": "MIT"
+}
